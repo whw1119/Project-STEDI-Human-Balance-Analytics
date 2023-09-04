@@ -39,8 +39,6 @@ Join_node1693820801158 = Join.apply(
 DropFields_node1693821011329 = DropFields.apply(
     frame=Join_node1693820801158,
     paths=[
-        "timestamp",
-        "sharewithfriendsasofdate",
         "phone",
         "email",
         "customername",
@@ -58,7 +56,7 @@ DropFields_node1693821011329 = DropFields.apply(
 S3bucket_node3 = glueContext.getSink(
     path="s3://whw-project/accelerometer/trusted/",
     connection_type="s3",
-    updateBehavior="LOG",
+    updateBehavior="UPDATE_IN_DATABASE",
     partitionKeys=[],
     enableUpdateCatalog=True,
     transformation_ctx="S3bucket_node3",
