@@ -13,86 +13,72 @@ job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
 # Script generated for node Amazon S3
-AmazonS3_node1693823775464 = glueContext.create_dynamic_frame.from_options(
-    format_options={"multiline": False},
-    connection_type="s3",
-    format="json",
-    connection_options={
-        "paths": ["s3://whw-project/step_trainer/landing/"],
-        "recurse": True,
-    },
-    transformation_ctx="AmazonS3_node1693823775464",
+AmazonS3_node1693834541823 = glueContext.create_dynamic_frame.from_catalog(
+    database="whw",
+    table_name="step_trainer_landing",
+    transformation_ctx="AmazonS3_node1693834541823",
 )
 
 # Script generated for node Amazon S3
-AmazonS3_node1693825927468 = glueContext.create_dynamic_frame.from_options(
-    format_options={"multiline": False},
-    connection_type="s3",
-    format="json",
-    connection_options={
-        "paths": ["s3://whw-project/customer/curated/"],
-        "recurse": True,
-    },
-    transformation_ctx="AmazonS3_node1693825927468",
+AmazonS3_node1693834553665 = glueContext.create_dynamic_frame.from_catalog(
+    database="whw",
+    table_name="customers_curated",
+    transformation_ctx="AmazonS3_node1693834553665",
 )
 
 # Script generated for node Renamed keys for Join
-RenamedkeysforJoin_node1693825959667 = ApplyMapping.apply(
-    frame=AmazonS3_node1693825927468,
+RenamedkeysforJoin_node1693834586922 = ApplyMapping.apply(
+    frame=AmazonS3_node1693834553665,
     mappings=[
-        ("serialNumber", "string", "right_serialNumber", "string"),
-        ("timeStamp", "long", "right_timeStamp", "long"),
-        ("birthDay", "string", "right_birthDay", "string"),
-        ("shareWithPublicAsOfDate", "long", "right_shareWithPublicAsOfDate", "long"),
+        ("customername", "string", "right_customername", "string"),
+        ("email", "string", "right_email", "string"),
+        ("phone", "string", "right_phone", "string"),
+        ("birthday", "string", "right_birthday", "string"),
+        ("serialnumber", "string", "right_serialnumber", "string"),
+        ("registrationdate", "long", "right_registrationdate", "long"),
+        ("lastupdatedate", "long", "right_lastupdatedate", "long"),
         (
-            "shareWithResearchAsOfDate",
+            "sharewithresearchasofdate",
             "long",
-            "right_shareWithResearchAsOfDate",
+            "right_sharewithresearchasofdate",
             "long",
         ),
-        ("registrationDate", "long", "right_registrationDate", "long"),
-        ("customerName", "string", "right_customerName", "string"),
-        ("email", "string", "right_email", "string"),
-        ("lastUpdateDate", "long", "right_lastUpdateDate", "long"),
-        ("phone", "string", "right_phone", "string"),
-        ("shareWithFriendsAsOfDate", "long", "right_shareWithFriendsAsOfDate", "long"),
+        ("sharewithpublicasofdate", "long", "right_sharewithpublicasofdate", "long"),
     ],
-    transformation_ctx="RenamedkeysforJoin_node1693825959667",
+    transformation_ctx="RenamedkeysforJoin_node1693834586922",
 )
 
 # Script generated for node Join
-Join_node1693823812562 = Join.apply(
-    frame1=AmazonS3_node1693823775464,
-    frame2=RenamedkeysforJoin_node1693825959667,
-    keys1=["serialNumber"],
-    keys2=["right_serialNumber"],
-    transformation_ctx="Join_node1693823812562",
+Join_node1693834386712 = Join.apply(
+    frame1=AmazonS3_node1693834541823,
+    frame2=RenamedkeysforJoin_node1693834586922,
+    keys1=["serialnumber"],
+    keys2=["right_serialnumber"],
+    transformation_ctx="Join_node1693834386712",
 )
 
 # Script generated for node Drop Fields
-DropFields_node1693823923280 = DropFields.apply(
-    frame=Join_node1693823812562,
+DropFields_node1693834497401 = DropFields.apply(
+    frame=Join_node1693834386712,
     paths=[
-        "right_serialNumber",
-        "right_timeStamp",
-        "right_birthDay",
-        "right_shareWithPublicAsOfDate",
-        "right_shareWithResearchAsOfDate",
-        "right_registrationDate",
-        "right_customerName",
+        "right_customername",
         "right_email",
-        "right_lastUpdateDate",
         "right_phone",
-        "right_shareWithFriendsAsOfDate",
+        "right_birthday",
+        "right_serialnumber",
+        "right_registrationdate",
+        "right_lastupdatedate",
+        "right_sharewithresearchasofdate",
+        "right_sharewithpublicasofdate",
     ],
-    transformation_ctx="DropFields_node1693823923280",
+    transformation_ctx="DropFields_node1693834497401",
 )
 
 # Script generated for node S3 bucket
 S3bucket_node3 = glueContext.getSink(
     path="s3://whw-project/step_trainer/trusted/",
     connection_type="s3",
-    updateBehavior="LOG",
+    updateBehavior="UPDATE_IN_DATABASE",
     partitionKeys=[],
     enableUpdateCatalog=True,
     transformation_ctx="S3bucket_node3",
@@ -101,5 +87,5 @@ S3bucket_node3.setCatalogInfo(
     catalogDatabase="whw", catalogTableName="step_trainer_trusted"
 )
 S3bucket_node3.setFormat("json")
-S3bucket_node3.writeFrame(DropFields_node1693823923280)
+S3bucket_node3.writeFrame(DropFields_node1693834497401)
 job.commit()
