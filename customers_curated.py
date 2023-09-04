@@ -18,9 +18,14 @@ S3bucket_node1 = glueContext.create_dynamic_frame.from_catalog(
 )
 
 # Script generated for node Amazon S3
-AmazonS3_node1693822849479 = glueContext.create_dynamic_frame.from_catalog(
-    database="whw",
-    table_name="accelerometer_landing",
+AmazonS3_node1693822849479 = glueContext.create_dynamic_frame.from_options(
+    format_options={"multiline": False},
+    connection_type="s3",
+    format="json",
+    connection_options={
+        "paths": ["s3://whw-project/accelerometer/landing/"],
+        "recurse": True,
+    },
     transformation_ctx="AmazonS3_node1693822849479",
 )
 
@@ -36,22 +41,20 @@ Join_node1693822852165 = Join.apply(
 # Script generated for node Drop Fields
 DropFields_node1693822891879 = DropFields.apply(
     frame=Join_node1693822852165,
-    paths=["x", "y", "z", "user", "timestamp"],
+    paths=["x", "y", "z", "user", "timeStamp"],
     transformation_ctx="DropFields_node1693822891879",
 )
 
 # Script generated for node S3 bucket
-S3bucket_node3 = glueContext.getSink(
-    path="s3://whw-project/customer/curated/",
+S3bucket_node3 = glueContext.write_dynamic_frame.from_options(
+    frame=DropFields_node1693822891879,
     connection_type="s3",
-    updateBehavior="LOG",
-    partitionKeys=[],
-    enableUpdateCatalog=True,
+    format="json",
+    connection_options={
+        "path": "s3://whw-project/customer/curated/",
+        "partitionKeys": [],
+    },
     transformation_ctx="S3bucket_node3",
 )
-S3bucket_node3.setCatalogInfo(
-    catalogDatabase="whw", catalogTableName="customers_curated"
-)
-S3bucket_node3.setFormat("json")
-S3bucket_node3.writeFrame(DropFields_node1693822891879)
+
 job.commit()

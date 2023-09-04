@@ -33,17 +33,15 @@ Filter_node1693814977263 = Filter.apply(
 )
 
 # Script generated for node S3 bucket
-S3bucket_node3 = glueContext.getSink(
-    path="s3://whw-project/customer/trusted/",
+S3bucket_node3 = glueContext.write_dynamic_frame.from_options(
+    frame=Filter_node1693814977263,
     connection_type="s3",
-    updateBehavior="LOG",
-    partitionKeys=[],
-    enableUpdateCatalog=True,
+    format="json",
+    connection_options={
+        "path": "s3://whw-project/customer/trusted/",
+        "partitionKeys": [],
+    },
     transformation_ctx="S3bucket_node3",
 )
-S3bucket_node3.setCatalogInfo(
-    catalogDatabase="whw", catalogTableName="customer_trusted"
-)
-S3bucket_node3.setFormat("json")
-S3bucket_node3.writeFrame(Filter_node1693814977263)
+
 job.commit()
